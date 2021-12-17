@@ -97,3 +97,136 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+
+
+.create-container {
+  border-radius: 5px;
+  background-color: #1f2c56;
+  margin: 15px 15px 15px 2%;
+  padding: 15px;
+  position: relative;
+  box-shadow: 2px 2px 2px #1f2c56;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px !important;
+  display: block !important;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #1f2c56 !important;
+  border-radius: 10px !important;
+  display: block !important;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #192444;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: white !important;
+}
+
+
+.Select-control, .Select-menu-outer, .Select-multi-value-wrapper, .select-up, .is-open .Select-control {
+  background-color: #1f2c56;
+  color: white;
+
+}
+
+.Select-control{
+  border: 0.5px solid green;
+}
+
+.has-value.Select--single>.Select-control .Select-value .Select-value-label, .has-value.is-pseudo-focused.Select--single>.Select-control .Select-value .Select-value-label {
+  color: white;
+}
+
+
+.dcc-compon {
+  padding: 5px;
+  width: calc(100% - 40px);
+  margin: 0 0 0 2%;
+}
+
+.fix-label {
+font-size: 20px;
+  margin: 0;
+  padding: 10px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+  width: calc(100% - 40px);
+}
+
+.flex-display {
+  display: flex;
+}
+
+.container-display {
+  display: flex;
+}
+
+#header {
+  align-items: center;
+}
+
+#refresh-data {
+  text-align: center;
+  height: 100%;
+  padding: 0 20px;
+  text-transform: none;
+  font-size: 20px;
+  float: right;
+  margin-right: 10px;
+  margin-top: 30px;
+}
+
+
+.card_container {
+  border-radius: 5px;
+  background-color: #1f2c56;
+  margin: 16px;
+  padding: 15px;
+  position: relative;
+  box-shadow: 2px 2px 2px #1f2c56;
+}
+
+
+.cell {
+  margin: 0px !important;
+  display: table-cell;
+  border: 1px solid black;
+}
+
+.table {
+        display: table;
+        /*border: 1px solid black;*/
+        margin: 5px;
+        padding-left: 0px;
+        margin-right: 0px;
+        margin-left: 5px;
+        width: 100%;
+        /*display: table时padding会失效*/
+    }
+
+.cell-body {
+    background-color: #A7A5A9 !important;
+    height: 104px;
+}
+.cell-header-red{
+  background-color: red !important;
+}
+
+.cell-header-yellow{
+  background-color: #FCDE22 !important;
+}
+
+.cell-header-green{
+  background-color: #109D55 !important;
+}

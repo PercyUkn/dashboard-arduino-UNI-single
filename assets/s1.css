@@ -90,6 +90,7 @@
   }
   .eight.columns {
     width: 65.3333333333%;
+    margin: 0;
   }
   .nine.columns {
     width: 74%;
@@ -102,6 +103,10 @@
   }
   .twelve.columns {
     width: 100%;
+    margin-left: 0;
+  }
+
+  .columns {
     margin-left: 0;
   }
 
