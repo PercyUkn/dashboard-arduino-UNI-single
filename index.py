@@ -63,45 +63,47 @@ chart_temperature = dcc.Graph(id='temperature_chart',
 limite_inferior_luz = 5
 limite_superior_luz = 20
 
-limite_inferior_sonido = 5
-limite_superior_sonido = 20
+limite_inferior_sonido = 250
+limite_superior_sonido = 500
 
 
-def semaforo_factory(limite_inferior, limite_superior):
+def semaforo_factory(limite_inferior, limite_superior,
+                     titulo_izquierdo="Peligro", titulo_central="Alerta", titulo_derecho="Correcto",
+                     ):
     semaforo = html.Div([
         html.Div([
-            html.Div([html.H5("Peligro", style={"marginBottom": '0px', 'color': 'black'})],
+            html.Div([html.H5(titulo_izquierdo, style={"marginBottom": '0px', 'color': 'black'})],
                      className="cell cell-header cell-header-red  card_container four columns"),
-            html.Div([html.H5("Alerta", style={"marginBottom": '0px', 'color': 'black'})],
-                     className="cell cell-header cell-header-yellow  card_container four "
+            html.Div([html.H5(titulo_central, style={"marginBottom": '0px', 'color': 'black'})],
+                     className="cell cell-header cell-header-green  card_container four "
                                "columns"),
-            html.Div([html.H5("Correcto", style={"marginBottom": '0px', 'color': 'black'})],
-                     className="cell cell-header cell-header-green card_container four columns")
+            html.Div([html.H5(titulo_derecho, style={"marginBottom": '0px', 'color': 'black'})],
+                     className="cell cell-header cell-header-red card_container four columns")
         ], className="row flex display"
         ),
         html.Div([
             html.Div([html.H5(f"< {limite_inferior}", style={"marginBottom": '0px', 'color': 'red'})],
                      className="cell cell-body cell-body-red danger card_container four columns"),
             html.Div(
-                [html.H5(f"{limite_inferior} - {limite_superior}", style={"marginBottom": '0px', 'color': '#FCDE22'})],
+                [html.H5(f"{limite_inferior} - {limite_superior}", style={"marginBottom": '0px', 'color': '#109D55'})],
                 className="cell cell-body cell-body-yellow warning card_container four "
                           "columns"),
-            html.Div([html.H5(f"{limite_superior} <", style={"marginBottom": '0px', 'color': '#109D55'})],
+            html.Div([html.H5(f"{limite_superior} <", style={"marginBottom": '0px', 'color': 'red'})],
                      className="cell cell-body cell-body-green success card_container four columns")
         ], className="row flex display"
         )
     ], className="table row flex display")
     return semaforo
 
-def kpi_color(valor,umbral_minimo, umbral_maximo):
+
+def kpi_color(valor, umbral_minimo, umbral_maximo):
     color = "#E0E0E0"
-    if (valor < umbral_minimo):
-        color ="#FF0000"
-    elif (umbral_minimo < valor < umbral_maximo):
-        color = "#FCDE22"
+    if valor < umbral_minimo or valor > umbral_maximo:
+        color = "#FF0000"
     else:
         color = "#109D55"
     return color
+
 
 app.layout = html.Div([
     html.Div(id='background_image'),
@@ -145,8 +147,8 @@ app.layout = html.Div([
         html.Div([
             # Tarjetas: Luminosidad e Intensidad de sonido
             html.Div([
-                #html.Div(id='text1', className='grid_height'),
-                html.Div(id='text2', className='grid_height'),
+                # html.Div(id='text1', className='grid_height'),
+                #html.Div(id='text2', className='grid_height'),
             ], className='grid_two_column'),
 
             html.Div([
@@ -176,28 +178,65 @@ app.layout = html.Div([
                                                  # Semáforo
                                                  html.Div([
                                                      html.Div([
-                                                         semaforo_factory("5 LUX", "20 LUX")
+                                                         semaforo_factory("5 LUX", "20 LUX", "Muy oscuro", "Correcto",
+                                                                          "Muy claro")
                                                      ], className="twelve columns"),
                                                  ], className="row flex display"),
                                                  # Imagen
                                                  html.Div([
-
+                                                     html.Div(id='update_imagen_luz',
+                                                              className='image_grid twelve columns'),
                                                  ], className="row flex display"),
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
                                  ],
-                                 label='Luminosidad',
+                                 label='Intensidad de la luz',
                                  # value='chart_humidity',
                                  style=tab_style,
                                  selected_style=tab_selected_style,
                                  className='font_size'),
-                             dcc.Tab(chart_temperature,
-                                     label='Intensidad del sonido',
-                                     value='chart_temperature',
-                                     style=tab_style,
-                                     selected_style=tab_selected_style,
-                                     className='font_size'),
+                             dcc.Tab(
+                                 children=[
+                                     # Gráfico de lineas + KPI + Semáforo + Imagen
+                                     html.Div([
+                                         # 8 columnas
+                                         html.Div([
+                                             # Gráfico de lineas
+                                             dcc.Graph(id='temperature_chart',
+                                                       animate=True,
+                                                       config={'displayModeBar': 'hover'},
+                                                       className='chart_width'),
+                                         ], className="seven columns"),
+                                         # 4 columnas
+                                         html.Div([
+                                             html.Div([
+                                                 html.Div([
+                                                     # KPI
+                                                     html.Div([
+                                                         html.Div(id='text2', className='grid_height'),
+                                                     ], className="twelve columns"),
+                                                 ], className="row flex display"),
+                                                 # Semáforo
+                                                 html.Div([
+                                                     html.Div([
+                                                         semaforo_factory("5 dB", "20 dB", "Muy bajo", "Correcto",
+                                                                          "Muy ruidoso")
+                                                     ], className="twelve columns"),
+                                                 ], className="row flex display"),
+                                                 # Imagen
+                                                 html.Div([
+                                                     html.Div(id='update_imagen_sonido',
+                                                              className='image_grid twelve columns'),
+                                                 ], className="row flex display"),
+                                             ], className="row flex display"),
+                                         ], className="five columns"),
+                                     ], className="row flex display"),
+                                 ],
+                                 label='Intensidad del sonido',
+                                 style=tab_style,
+                                 selected_style=tab_selected_style,
+                                 className='font_size'),
                          ], style=tabs_styles,
                          colors={"border": None,
                                  "primary": None,
@@ -451,115 +490,45 @@ def update_graph(n_intervals):
     if n_intervals == 0:
         raise PreventUpdate
 
-    color_actual = kpi_color(get_light_level,limite_inferior_luz,limite_superior_luz)
-    color_variacion = kpi_color(changed_light_level,0,0)
+    color_actual = kpi_color(get_light_level, limite_inferior_luz, limite_superior_luz)
+    color_variacion = kpi_color(changed_light_level, 0, 0)
 
-    # Variación positiva
-    if changed_light_level > 0:
-
-        return [
-            html.H6('Luminosidad',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#D35400'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            # Nivel Actual
-            html.P('{0:,.2f}%'.format(get_light_level),
-                   style={'textAlign': 'center',
-                          'color': color_actual,
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_humi'
-                   ),
-            html.P('+{0:,.2f}%'.format(changed_light_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': color_variacion,
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_humi'
-                   ),
-        ]
-
-    elif changed_light_level < 0:
-
-        return [
-            html.H6('Luminosidad',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#D35400'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            html.P('{0:,.2f}%'.format(get_light_level),
-                   style={'textAlign': 'center',
-                          'color': '#dd1e35',
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_humi'
-                   ),
-            html.P('{0:,.2f}%'.format(changed_light_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': '#dd1e35',
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_humi'
-                   ),
-        ]
-
-    elif changed_light_level == 0:
-
-        return [
-            html.H6('Luminosidad',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#D35400'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            html.P('{0:,.2f}%'.format(get_light_level),
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_humi'
-                   ),
-            html.P('{0:,.2f}%'.format(changed_light_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_humi'
-                   ),
-        ]
+    return [
+        html.H6('Luminosidad',
+                style={'textAlign': 'center',
+                       'lineHeight': '1',
+                       'color': 'black',
+                       'fontSize': 30,
+                       }
+                ),
+        # Nivel Actual
+        html.P('{0:,.2f}%'.format(get_light_level),
+               style={'textAlign': 'center',
+                      'color': color_actual,
+                      'fontSize': 30,
+                      'fontWeight': 'bold',
+                      'marginTop': '5px',
+                      'lineHeight': '1',
+                      }, className='paragraph_value_humi'
+               ),
+        html.P('{0:,.2f}%'.format(changed_light_level) + ' ' + 'vs. medición anterior',
+               style={'textAlign': 'center',
+                      'color': color_variacion,
+                      'fontSize': 15,
+                      'fontWeight': 'bold',
+                      'marginTop': '0px',
+                      'marginLeft': '0px',
+                      'lineHeight': '1',
+                      }, className='change_paragraph_value_humi'
+               ),
+        html.P(get_time,
+               style={'textAlign': 'center',
+                      'color': 'black',
+                      'fontSize': 14,
+                      'marginTop': '0px'
+                      }
+               ),
+    ]
 
 
 @app.callback(Output('text2', 'children'),
@@ -573,144 +542,119 @@ def update_graph(n_intervals):
     if n_intervals == 0:
         raise PreventUpdate
 
-    if changed_sound_level > 0:
+    color_actual = kpi_color(get_sound_level, limite_inferior_sonido, limite_superior_sonido)
+    color_variacion = kpi_color(changed_sound_level, 0, 0)
 
-        return [
-            html.H6('Intensidad de sonido',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#CA23D5'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            html.P('{0:,.2f}°C'.format(get_sound_level),
-                   style={'textAlign': 'center',
-                          'color': '#008000',
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_temp'
-                   ),
-            html.P('+{0:,.2f}°C'.format(changed_sound_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': '#008000',
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_temp'
-                   ),
-        ]
-
-    elif changed_sound_level < 0:
-        return [
-            html.H6('Intensidad de sonido',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#CA23D5'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            html.P('{0:,.2f}°C'.format(get_sound_level),
-                   style={'textAlign': 'center',
-                          'color': '#dd1e35',
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_temp'
-                   ),
-            html.P('{0:,.2f}°C'.format(changed_sound_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': '#dd1e35',
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_temp'
-                   ),
-        ]
-
-    elif changed_sound_level == 0:
-        return [
-            html.H6('Intensidad de sonido',
-                    style={'textAlign': 'left',
-                           'lineHeight': '1',
-                           'color': '#CA23D5'}
-                    ),
-            html.P(get_time,
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'marginTop': '-3px'
-                          }
-                   ),
-            html.P('{0:,.2f}°C'.format(get_sound_level),
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 18,
-                          'fontWeight': 'bold',
-                          'marginTop': '-3px',
-                          'lineHeight': '1',
-                          }, className='paragraph_value_temp'
-                   ),
-            html.P('{0:,.2f}°C'.format(changed_sound_level) + ' ' + 'vs. medición anterior',
-                   style={'textAlign': 'center',
-                          'color': 'black',
-                          'fontSize': 12,
-                          'fontWeight': 'bold',
-                          'marginTop': '-7px',
-                          'lineHeight': '1',
-                          }, className='change_paragraph_value_temp'
-                   ),
-        ]
+    return [
+        html.H6('Nivel sonoro',
+                style={'textAlign': 'center',
+                       'lineHeight': '1',
+                       'color': 'black',
+                       'fontSize': 30,
+                       }
+                ),
+        # Nivel Actual
+        html.P('{0:,.2f}%'.format(get_sound_level),
+               style={'textAlign': 'center',
+                      'color': color_actual,
+                      'fontSize': 30,
+                      'fontWeight': 'bold',
+                      'marginTop': '5px',
+                      'lineHeight': '1',
+                      }, className='paragraph_value_humi'
+               ),
+        html.P('{0:,.2f}%'.format(changed_sound_level) + ' ' + 'vs. medición anterior',
+               style={'textAlign': 'center',
+                      'color': color_variacion,
+                      'fontSize': 15,
+                      'fontWeight': 'bold',
+                      'marginTop': '0px',
+                      'marginLeft': '0px',
+                      'lineHeight': '1',
+                      }, className='change_paragraph_value_humi'
+               ),
+        html.P(get_time,
+               style={'textAlign': 'center',
+                      'color': 'black',
+                      'fontSize': 14,
+                      'marginTop': '0px'
+                      }
+               ),
+    ]
 
 
 # Si es ruidoso o no
-@app.callback(Output('update', 'children'),
+@app.callback(Output('update_imagen_luz', 'children'), Output('update_imagen_sonido', 'children'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
+    get_light_level = df['Luminosidad'].tail(1).iloc[0].astype(float)
     get_sound_level = df['Sonido'].tail(1).iloc[0].astype(float)
     if n_intervals == 0:
         raise PreventUpdate
 
-    # Imagen ruidosa
-    if get_sound_level >= 21:
-        return [
+    children_light = None
+    children_sound = None
+
+    # Imagen con mucha luz
+    if get_light_level > limite_superior_luz:
+        children_light = [
             html.Div([
-                html.H6('Muy ruidoso',
-                        style={'lineHeight': '1',
-                               'color': '#FFFFFF'}
-                        ),
-                html.Img(src=app.get_asset_url('sun.png'),
-                         style={'height': '35px'}),
+                html.Img(src=app.get_asset_url('too_shiny.png'),
+                         # style={'height': '35px'}
+                         ),
             ], className='temp_card2')
         ]
 
     # Ambiente tranquilo
-    elif get_sound_level < 21:
-        return [
+    elif get_light_level < limite_inferior_luz:
+        children_light = [
             html.Div([
-                html.H6('Ruido aceptable',
-                        style={'lineHeight': '1',
-                               'color': '#00FF00'}
-                        ),
-                html.Img(src=app.get_asset_url('cloudy-day.png'),
-                         style={'height': '35px'}),
+                html.Img(src=app.get_asset_url('too_dark.png'),
+                         # style={'height': '35px'}
+                         ),
             ], className='temp_card2')
         ]
+
+    else:
+        children_light = [
+            html.Div([
+                html.Img(src=app.get_asset_url('ok.png'),
+                         # style={'height': '35px'}
+                         ),
+            ], className='temp_card2')
+        ]
+
+    # Imagen con mucha luz
+    if get_sound_level > limite_superior_sonido:
+        children_sound = [
+            html.Div([
+                html.Img(src=app.get_asset_url('too_noisy.png'),
+                         # style={'height': '35px'}
+                         ),
+            ], className='temp_card2')
+        ]
+
+    # Ambiente tranquilo
+    elif get_sound_level < limite_inferior_sonido:
+        children_sound = [
+            html.Div([
+                html.Img(src=app.get_asset_url('too_quiet.png'),
+                         # style={'height': '35px'}
+                         ),
+            ], className='temp_card2')
+        ]
+
+    else:
+        children_sound = [
+            html.Div([
+                html.Img(src=app.get_asset_url('ok.png'),
+                         # style={'height': '35px'}
+                         ),
+            ], className='temp_card2')
+        ]
+
+    return children_light, children_sound
 
 
 if __name__ == "__main__":

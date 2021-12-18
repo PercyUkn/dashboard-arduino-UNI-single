@@ -32,8 +32,9 @@ body {
 }
 
 .temp_card2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    /*grid-template-columns: 1fr 1fr;*/
+    justify-content: center;
     position: static;
     white-space: pre;
     gap: 1px;
@@ -217,8 +218,15 @@ font-size: 20px;
 
 .cell-body {
     background-color: #A7A5A9 !important;
-    height: 104px;
+    //height: 104px;
 }
+
+.cell > h5 {
+    font-size: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
 .cell-header-red{
   background-color: red !important;
 }
@@ -229,4 +237,9 @@ font-size: 20px;
 
 .cell-header-green{
   background-color: #109D55 !important;
+}
+
+.temp_card2 > img {
+    height: 200px;
+    margin: 0 auto;
 }
