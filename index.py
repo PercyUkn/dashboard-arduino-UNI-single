@@ -9,6 +9,9 @@ from datetime import datetime
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
 
+app._favicon = "/assets/favicon.ico"
+app.title = "E12 - Sensores"
+
 # Data - CSV
 csv = 'light_sound.csv'
 header_list = ['Time', 'Luminosidad', 'Sonido', 'Temperatura']
@@ -160,22 +163,33 @@ app.layout = html.Div([
         # Cabecera
         html.Div([
             html.Div([
-                html.H6('E12 - Sensores',
-                        style={
-                            'lineHeight': '1',
-                            'color': 'white'},
-                        className='adjust_title six columns'
-                        ),
+                html.Div([
+                    html.Img(src="/assets/autism_logo.png",
+                             title="Logo de los autistas",
+                             style={
+                                 "height": "100px",
+                                 "width": "auto",
+                                 'marginBottom': "25px"
+                             }, id="logo_ocad", className="six columns"),
+                    html.H6('E12 - Sensores',
+                            style={
+                                'lineHeight': '1',
+                                'color': 'white',
+                                'marginLeft': '20px','fontSize':'50px','paddingTop': '20px'},
+                            className='adjust_title six columns'
+                            ),
+                ], className="six columns row flex display"),
+
                 html.Div([
                     html.Div(id='update',
                              className='image_grid six columns'),
                     html.H6(id='get_date_time',
                             style={
                                 'lineHeight': '1',
-                                'color': 'white'},
+                                'color': 'white', 'paddingTop': '7%', 'marginRight': '30px'},
                             className='adjust_date_time'
                             )
-                ], className='temp_card1'),
+                ], className='temp_card1', style={'textAlign':'right'}),
             ], className='adjust_title_and_date_time_two_columns')
         ], className='container_title_date_time twelve columns')
     ], className="row flex-display"),
@@ -347,7 +361,7 @@ app.layout = html.Div([
               [Input('update_date_time', 'n_intervals')])
 def update_graph(n_intervals):
     now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    dt_string = now.strftime("Fecha: %d/%m/%Y, Hora: %H:%M:%S %p")
     if n_intervals == 0:
         raise PreventUpdate
 
@@ -891,6 +905,7 @@ def update_graph(n_intervals):
 
     return children_light, children_sound, children_temperature
 
+
 # Usado para cambiar la imagen de fondo
 @app.callback(Output('background_image', 'children'),
               [Input('update_chart', 'n_intervals'), Input("tabs-styled-with-inline", "value")])
@@ -911,7 +926,8 @@ def update_graph(n_intervals, n_tab):
                                                  "white_bg.png", "white_bg.png",
                                                  "too_noisy_bg.png")
     else:
-        background_children = background_factory(get_temperature_level, limite_inferior_temperatura, limite_superior_temperatura,
+        background_children = background_factory(get_temperature_level, limite_inferior_temperatura,
+                                                 limite_superior_temperatura,
                                                  "too_cold_bg.png",
                                                  "normal_temperature_bg.png",
                                                  "too_hot_bg.png")
