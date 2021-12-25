@@ -1,6 +1,6 @@
 body {
     margin:0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .adjust_title {
@@ -22,7 +22,8 @@ body {
 
 .container_title_date_time {
     background-color: #003C81;
-    margin-bottom: 950px;
+    /*margin-bottom: 950px;*/
+    height: 150px;
     margin-top: -950px;
 }
 
@@ -71,8 +72,8 @@ body {
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.5);
   margin: 0 auto;
-    margin-bottom: 900px;
-    margin-top: -900px;
+    margin-bottom: 0px;
+    margin-top: -800px;
   padding: 15px;
   position: relative;
 }

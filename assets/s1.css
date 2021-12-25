@@ -578,7 +578,7 @@ there.
 
   .create_container3 {
     margin: 0 auto !important;
-    margin-bottom: 900px !important;
+    /*margin-bottom: 900px !important;*/
     margin-top: -900px !important;
     width: 480px !important;
   }

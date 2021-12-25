@@ -1,3 +1,7 @@
+import math
+from turtle import position
+
+import plotly.express as px
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -40,6 +44,29 @@ tab_selected_style = {
     'borderRadius': '0px 0px 0px 0px',
 }
 
+
+background_div_style = {
+    "position": "absolute",
+    "top": "0px",
+    "right": "0px",
+    "left": "0px",
+    "bottom": "0px",
+}
+
+backgroundImage_style = {
+    "height": "139vh"
+}
+
+header_div_style = {
+    "position": "relative",
+    "top": "100vh"
+}
+
+content_div_style = {
+    "position": "relative",
+    "top": "105vh"
+}
+
 tab_selected_style1 = {
     "fontSize": '.9vw',
     "color": '#F4F4F4',
@@ -72,6 +99,30 @@ limite_superior_sonido = 60
 limite_inferior_temperatura = 20
 limite_superior_temperatura = 32
 
+# Funciones utilitarias
+
+def get_max_min(dataframe, category):
+    n_datos = dataframe.shape[0]
+    k_classes = 1 + 3.332*math.log(n_datos,10)
+    k_classes = math.ceil(k_classes)
+    min_value = dataframe[category].min()
+    max_value = dataframe[category].max()
+    amplitude = (max_value - min_value)/k_classes
+    return max_value, min_value, amplitude, k_classes
+
+#rgba(255, 255, 255, 0.0)'
+def layout_factory(title, color='#1f2c56'):
+    layout = go.Layout(
+        title=dict(text=title, y=0.92, x=0.5, xanchor='center', yanchor='top'),
+        font=dict(color='black'),
+        hovermode='closest',
+        margin=dict(r=0),
+        titlefont={'color': 'black', 'size': 20},
+        paper_bgcolor='rgba(255, 255, 255, 0.0)',
+        plot_bgcolor='rgba(255, 255, 255, 0.0)',
+        legend=dict(orientation='v', bgcolor=color, xanchor='center', x=0.5, y=-0.5)
+    )
+    return layout
 
 def semaforo_factory(limite_inferior, limite_superior,
                      titulo_izquierdo="Peligro", titulo_central="Alerta", titulo_derecho="Correcto",
@@ -112,7 +163,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar con mucha luz
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_derecho}")',
-                            'height': '100vh',
+                            'height': '139vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             }),
@@ -122,7 +173,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar oscuro / semáforo
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_izquierdo}")',
-                            'height': '100vh',
+                            'height': '139vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -132,7 +183,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
     else:
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_central}")',
-                            'height': '100vh',
+                            'height': '139vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -151,7 +202,7 @@ def kpi_color(valor, umbral_minimo, umbral_maximo, color_izquierdo="red", color_
 
 
 app.layout = html.Div([
-    html.Div(id='background_image'),
+    html.Div(id='background_image', style=background_div_style),
     html.Div([
         dcc.Interval(id='update_date_time',
                      interval=1000,
@@ -192,7 +243,7 @@ app.layout = html.Div([
                 ], className='temp_card1', style={'textAlign':'right'}),
             ], className='adjust_title_and_date_time_two_columns')
         ], className='container_title_date_time twelve columns')
-    ], className="row flex-display"),
+    ], className="row flex-display", style=header_div_style),
     html.Div([
         dcc.Interval(id='update_chart',
                      interval=1000,
@@ -210,11 +261,11 @@ app.layout = html.Div([
             html.Div([
                 dcc.Tabs(id="tabs-styled-with-inline",  # value='chart_temperature',
                          children=[
-                             dcc.Tab(
+                             dcc.Tab( # Luminosidad
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
-                                         # 8 columnas
+                                         # 7 columnas - Gráfico de lineas
                                          html.Div([
                                              # Gráfico de lineas
                                              dcc.Graph(id='luminosity-chart',
@@ -222,7 +273,7 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="seven columns"),
-                                         # 4 columnas
+                                         # 5 columnas - KPI, Semáoforo e Imagen
                                          html.Div([
                                              html.Div([
                                                  html.Div([
@@ -249,17 +300,27 @@ app.layout = html.Div([
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
+
+                                     html.Div([
+                                         html.Div([
+                                             # Histograma
+                                             dcc.Graph(id='luminosity-histogram',
+                                                       animate=True,
+                                                       config={'displayModeBar': 'hover'},
+                                                       className='chart_width'),
+                                         ], className="twelve columns"),
+                                     ],className="row flex display")
                                  ],
                                  label='Intensidad de la luz',
                                  # value='chart_humidity',
                                  style=tab_style,
                                  selected_style=tab_selected_style,
                                  className='font_size'),
-                             dcc.Tab(
+                             dcc.Tab( # Sonido
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
-                                         # 8 columnas
+                                         # 7 columnas
                                          html.Div([
                                              # Gráfico de lineas
                                              dcc.Graph(id='sound-chart',
@@ -267,7 +328,7 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="seven columns"),
-                                         # 4 columnas
+                                         # 5 columnas
                                          html.Div([
                                              html.Div([
                                                  html.Div([
@@ -294,12 +355,23 @@ app.layout = html.Div([
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
+
+                                     html.Div([
+                                         html.Div([
+                                             # Histograma
+                                             dcc.Graph(id='sound-histogram',
+                                                       animate=True,
+                                                       config={'displayModeBar': 'hover'},
+                                                       className='chart_width'),
+                                         ], className="twelve columns"),
+                                     ],className="row flex display")
+
                                  ],
                                  label='Intensidad del sonido',
                                  style=tab_style,
                                  selected_style=tab_selected_style,
                                  className='font_size'),
-                             dcc.Tab(
+                             dcc.Tab( # Temperatura
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
@@ -351,7 +423,7 @@ app.layout = html.Div([
 
             ], className='create_container3 twelve columns'),
         ], className='adjust_grids'),
-    ], className="row flex-display"),
+    ], className="row flex-display", style=content_div_style),
 
 ], id="mainContainer",
     style={"display": "flex", "flexDirection": "column"})
@@ -370,7 +442,7 @@ def update_graph(n_intervals):
     ]
 
 
-@app.callback(Output('luminosity-chart', 'figure'),
+@app.callback(Output('luminosity-chart', 'figure'),Output('luminosity-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -379,90 +451,115 @@ def update_graph(n_intervals):
     if n_intervals == 0:
         raise PreventUpdate
 
-    return {
-        'data': [go.Scatter(
-            x=get_time,
-            y=get_light_level,
-            mode='markers+lines',
-            line=dict(width=3, color='#D35400'),
-            marker=dict(size=7, symbol='circle', color='#D35400',
-                        line=dict(color='#D35400', width=2)
-                        ),
+    luminosity_line_chart = go.Figure(
+        {
+            'data': [go.Scatter(
+                x=get_time,
+                y=get_light_level,
+                mode='markers+lines',
+                line=dict(width=3, color='#D35400'),
+                marker=dict(size=7, symbol='circle', color='#D35400',
+                            line=dict(color='#D35400', width=2)
+                            ),
 
-            hoverinfo='text',
-            hovertext=
-            '<b>Time</b>: ' + get_time.astype(str) + '<br>' +
-            '<b>Luminiscencia</b>: ' + [f'{x:,.2f} LUX' for x in get_light_level] + '<br>'
+                hoverinfo='text',
+                hovertext=
+                '<b>Time</b>: ' + get_time.astype(str) + '<br>' +
+                '<b>Luminiscencia</b>: ' + [f'{x:,.2f} LUX' for x in get_light_level] + '<br>'
 
-        )],
+            )],
 
-        'layout': go.Layout(
-            # paper_bgcolor = 'rgba(0,0,0,0)',
-            # plot_bgcolor = 'rgba(0,0,0,0)',
-            plot_bgcolor='rgba(255, 255, 255, 0.0)',
-            paper_bgcolor='rgba(255, 255, 255, 0.0)',
-            title={
-                'text': '',
+            'layout': go.Layout(
+                # paper_bgcolor = 'rgba(0,0,0,0)',
+                # plot_bgcolor = 'rgba(0,0,0,0)',
+                plot_bgcolor='rgba(255, 255, 255, 0.0)',
+                paper_bgcolor='rgba(255, 255, 255, 0.0)',
+                title={
+                    'text': '',
 
-                'y': 0.97,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'},
-            titlefont={
-                'color': 'black',
-                'size': 17},
+                    'y': 0.97,
+                    'x': 0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'top'},
+                titlefont={
+                    'color': 'black',
+                    'size': 17},
 
-            hovermode='closest',
-            margin=dict(t=25, r=0, l=50),
+                hovermode='closest',
+                margin=dict(t=25, r=0, l=50),
 
-            xaxis=dict(range=[min(get_time), max(get_time)],
-                       title='<b>Tiempo</b>',
-                       color='black',
-                       showline=True,
-                       showgrid=False,
-                       linecolor='black',
-                       linewidth=1,
-                       ticks='outside',
-                       tickfont=dict(
-                           family='Arial',
-                           size=12,
-                           color='black')
+                xaxis=dict(range=[min(get_time), max(get_time)],
+                           title='<b>Tiempo</b>',
+                           color='black',
+                           showline=True,
+                           showgrid=False,
+                           linecolor='black',
+                           linewidth=1,
+                           ticks='outside',
+                           tickfont=dict(
+                               family='Arial',
+                               size=12,
+                               color='black')
 
-                       ),
+                           ),
 
-            yaxis=dict(range=[min(get_light_level) - 1, max(get_light_level) + 1],
-                       title='<b>Luminosidad</b>',
-                       color='black',
-                       showline=True,
-                       showgrid=True,
-                       linecolor='black',
-                       linewidth=1,
-                       ticks='outside',
-                       tickfont=dict(
-                           family='Arial',
-                           size=12,
-                           color='black')
+                yaxis=dict(range=[min(get_light_level) - 1, max(get_light_level) + 1],
+                           title='<b>Luminosidad</b>',
+                           color='black',
+                           showline=True,
+                           showgrid=True,
+                           linecolor='black',
+                           linewidth=1,
+                           ticks='outside',
+                           tickfont=dict(
+                               family='Arial',
+                               size=12,
+                               color='black')
 
-                       ),
+                           ),
 
-            legend={
-                'orientation': 'h',
-                'bgcolor': '#F2F2F2',
-                'x': 0.5,
-                'y': 1.25,
-                'xanchor': 'center',
-                'yanchor': 'top'},
-            font=dict(
-                family="sans-serif",
-                size=12,
-                color='black')
+                legend={
+                    'orientation': 'h',
+                    'bgcolor': '#F2F2F2',
+                    'x': 0.5,
+                    'y': 1.25,
+                    'xanchor': 'center',
+                    'yanchor': 'top'},
+                font=dict(
+                    family="sans-serif",
+                    size=12,
+                    color='black')
 
-        )
+            )
 
-    }
+        }
+    )
+
+    # Histograma
+    max_light, min_light, amplitude_light, k_luz = get_max_min(df, ["Luminosidad"])
+    luminosity_histogram = px.histogram(df, x="Luminosidad", title='Histograma', opacity=0.8)
+    luminosity_histogram.update_traces(xbins=dict(  # bins used for histogram
+        start=min_light,
+        end=max_light,
+        size=amplitude_light
+    ))
+    luminosity_histogram.update_layout(
+        xaxis=dict(title='<b>Luminosidad (LUX)</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+        yaxis=dict(title='<b>Frecuencia</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+    )
+
+    luminosity_histogram.update_layout(layout_factory("Histograma"))
+
+    return luminosity_line_chart, luminosity_histogram
 
 
-@app.callback(Output('sound-chart', 'figure'),
+@app.callback(Output('sound-chart', 'figure'),Output('sound-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -471,7 +568,7 @@ def update_graph(n_intervals):
     if n_intervals == 0:
         raise PreventUpdate
 
-    return {
+    sound_chart = go.Figure({
         'data': [go.Scatter(
             x=get_time,
             y=get_sound_level,
@@ -549,7 +646,30 @@ def update_graph(n_intervals):
 
         )
 
-    }
+    })
+
+    # Histograma
+    max_sound, min_sound, amplitude_sound, k_sound = get_max_min(df, ["Sonido"])
+    sound_histogram = px.histogram(df, x="Sonido", title='Histograma', opacity=0.8)
+    sound_histogram.update_traces(xbins=dict(  # bins used for histogram
+        start=min_sound,
+        end=max_sound,
+        size=amplitude_sound
+    ))
+    sound_histogram.update_layout(
+        xaxis=dict(title='<b>Sonido (dB)</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+        yaxis=dict(title='<b>Frecuencia</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+    )
+
+    sound_histogram.update_layout(layout_factory("Histograma"))
+
+    return sound_chart, sound_histogram
 
 
 @app.callback(Output('temperature-chart', 'figure'),
