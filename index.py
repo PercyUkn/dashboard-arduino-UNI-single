@@ -44,7 +44,6 @@ tab_selected_style = {
     'borderRadius': '0px 0px 0px 0px',
 }
 
-
 background_div_style = {
     "position": "absolute",
     "top": "0px",
@@ -99,18 +98,20 @@ limite_superior_sonido = 60
 limite_inferior_temperatura = 20
 limite_superior_temperatura = 32
 
+
 # Funciones utilitarias
 
 def get_max_min(dataframe, category):
     n_datos = dataframe.shape[0]
-    k_classes = 1 + 3.332*math.log(n_datos,10)
+    k_classes = 1 + 3.332 * math.log(n_datos, 10)
     k_classes = math.ceil(k_classes)
     min_value = dataframe[category].min()
     max_value = dataframe[category].max()
-    amplitude = (max_value - min_value)/k_classes
+    amplitude = (max_value - min_value) / k_classes
     return max_value, min_value, amplitude, k_classes
 
-#rgba(255, 255, 255, 0.0)'
+
+# rgba(255, 255, 255, 0.0)'
 def layout_factory(title, color='#1f2c56'):
     layout = go.Layout(
         title=dict(text=title, y=0.92, x=0.5, xanchor='center', yanchor='top'),
@@ -123,6 +124,7 @@ def layout_factory(title, color='#1f2c56'):
         legend=dict(orientation='v', bgcolor=color, xanchor='center', x=0.5, y=-0.5)
     )
     return layout
+
 
 def semaforo_factory(limite_inferior, limite_superior,
                      titulo_izquierdo="Peligro", titulo_central="Alerta", titulo_derecho="Correcto",
@@ -226,7 +228,7 @@ app.layout = html.Div([
                             style={
                                 'lineHeight': '1',
                                 'color': 'white',
-                                'marginLeft': '20px','fontSize':'50px','paddingTop': '20px'},
+                                'marginLeft': '20px', 'fontSize': '50px', 'paddingTop': '20px'},
                             className='adjust_title six columns'
                             ),
                 ], className="six columns row flex display"),
@@ -240,7 +242,7 @@ app.layout = html.Div([
                                 'color': 'white', 'paddingTop': '7%', 'marginRight': '30px'},
                             className='adjust_date_time'
                             )
-                ], className='temp_card1', style={'textAlign':'right'}),
+                ], className='temp_card1', style={'textAlign': 'right'}),
             ], className='adjust_title_and_date_time_two_columns')
         ], className='container_title_date_time twelve columns')
     ], className="row flex-display", style=header_div_style),
@@ -261,7 +263,7 @@ app.layout = html.Div([
             html.Div([
                 dcc.Tabs(id="tabs-styled-with-inline",  # value='chart_temperature',
                          children=[
-                             dcc.Tab( # Luminosidad
+                             dcc.Tab(  # Luminosidad
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
@@ -309,14 +311,14 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="twelve columns"),
-                                     ],className="row flex display")
+                                     ], className="row flex display")
                                  ],
                                  label='Intensidad de la luz',
                                  # value='chart_humidity',
                                  style=tab_style,
                                  selected_style=tab_selected_style,
                                  className='font_size'),
-                             dcc.Tab( # Sonido
+                             dcc.Tab(  # Sonido
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
@@ -364,18 +366,18 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="twelve columns"),
-                                     ],className="row flex display")
+                                     ], className="row flex display")
 
                                  ],
                                  label='Intensidad del sonido',
                                  style=tab_style,
                                  selected_style=tab_selected_style,
                                  className='font_size'),
-                             dcc.Tab( # Temperatura
+                             dcc.Tab(  # Temperatura
                                  children=[
                                      # Gráfico de lineas + KPI + Semáforo + Imagen
                                      html.Div([
-                                         # 8 columnas
+                                         # 7 columnas
                                          html.Div([
                                              # Gráfico de lineas
                                              dcc.Graph(id='temperature-chart',
@@ -383,7 +385,7 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="seven columns"),
-                                         # 4 columnas
+                                         # 5 columnas
                                          html.Div([
                                              html.Div([
                                                  html.Div([
@@ -411,6 +413,15 @@ app.layout = html.Div([
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
+                                     html.Div([
+                                         html.Div([
+                                             # Histograma
+                                             dcc.Graph(id='temperature-histogram',
+                                                       animate=True,
+                                                       config={'displayModeBar': 'hover'},
+                                                       className='chart_width'),
+                                         ], className="twelve columns"),
+                                     ], className="row flex display")
                                  ],
                                  label='Temperatura',
                                  style=tab_style,
@@ -442,7 +453,7 @@ def update_graph(n_intervals):
     ]
 
 
-@app.callback(Output('luminosity-chart', 'figure'),Output('luminosity-histogram', 'figure'),
+@app.callback(Output('luminosity-chart', 'figure'), Output('luminosity-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -559,7 +570,7 @@ def update_graph(n_intervals):
     return luminosity_line_chart, luminosity_histogram
 
 
-@app.callback(Output('sound-chart', 'figure'),Output('sound-histogram', 'figure'),
+@app.callback(Output('sound-chart', 'figure'), Output('sound-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -672,7 +683,7 @@ def update_graph(n_intervals):
     return sound_chart, sound_histogram
 
 
-@app.callback(Output('temperature-chart', 'figure'),
+@app.callback(Output('temperature-chart', 'figure'),Output('temperature-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -681,85 +692,110 @@ def update_graph(n_intervals):
     if n_intervals == 0:
         raise PreventUpdate
 
-    return {
-        'data': [go.Scatter(
-            x=get_time,
-            y=get_sound_level,
-            mode='markers+lines',
-            line=dict(width=3, color='#CA23D5'),
-            marker=dict(size=7, symbol='circle', color='#CA23D5',
-                        line=dict(color='#CA23D5', width=2)
-                        ),
 
-            hoverinfo='text',
-            hovertext=
-            '<b>Tiempo</b>: ' + get_time.astype(str) + '<br>' +
-            '<b>Temperatura</b>: ' + [f'{x:,.2f} °C' for x in get_sound_level] + '<br>'
+    temperature_chart = go.Figure(
+        {
+            'data': [go.Scatter(
+                x=get_time,
+                y=get_sound_level,
+                mode='markers+lines',
+                line=dict(width=3, color='#CA23D5'),
+                marker=dict(size=7, symbol='circle', color='#CA23D5',
+                            line=dict(color='#CA23D5', width=2)
+                            ),
 
-        )],
+                hoverinfo='text',
+                hovertext=
+                '<b>Tiempo</b>: ' + get_time.astype(str) + '<br>' +
+                '<b>Temperatura</b>: ' + [f'{x:,.2f} °C' for x in get_sound_level] + '<br>'
 
-        'layout': go.Layout(
-            plot_bgcolor='rgba(255, 255, 255, 0.0)',
-            paper_bgcolor='rgba(255, 255, 255, 0.0)',
-            title={
-                'text': '',
+            )],
 
-                'y': 0.97,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'},
-            titlefont={
-                'color': 'black',
-                'size': 17},
+            'layout': go.Layout(
+                plot_bgcolor='rgba(255, 255, 255, 0.0)',
+                paper_bgcolor='rgba(255, 255, 255, 0.0)',
+                title={
+                    'text': '',
 
-            hovermode='closest',
-            margin=dict(t=25, r=0, l=50),
+                    'y': 0.97,
+                    'x': 0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'top'},
+                titlefont={
+                    'color': 'black',
+                    'size': 17},
 
-            xaxis=dict(range=[min(get_time), max(get_time)],
-                       title='<b>Tiempo</b>',
-                       color='black',
-                       showline=True,
-                       showgrid=False,
-                       linecolor='black',
-                       linewidth=1,
-                       ticks='outside',
-                       tickfont=dict(
-                           family='Arial',
-                           size=12,
-                           color='black')
+                hovermode='closest',
+                margin=dict(t=25, r=0, l=50),
 
-                       ),
+                xaxis=dict(range=[min(get_time), max(get_time)],
+                           title='<b>Tiempo</b>',
+                           color='black',
+                           showline=True,
+                           showgrid=False,
+                           linecolor='black',
+                           linewidth=1,
+                           ticks='outside',
+                           tickfont=dict(
+                               family='Arial',
+                               size=12,
+                               color='black')
 
-            yaxis=dict(range=[min(get_sound_level) - 0.1, max(get_sound_level) + 0.1],
-                       title='<b>Temperatura</b>',
-                       color='black',
-                       showline=True,
-                       showgrid=True,
-                       linecolor='black',
-                       linewidth=1,
-                       ticks='outside',
-                       tickfont=dict(
-                           family='Arial',
-                           size=12,
-                           color='black')
+                           ),
 
-                       ),
+                yaxis=dict(range=[min(get_sound_level) - 0.1, max(get_sound_level) + 0.1],
+                           title='<b>Temperatura</b>',
+                           color='black',
+                           showline=True,
+                           showgrid=True,
+                           linecolor='black',
+                           linewidth=1,
+                           ticks='outside',
+                           tickfont=dict(
+                               family='Arial',
+                               size=12,
+                               color='black')
 
-            legend={
-                'orientation': 'h',
-                'bgcolor': '#F2F2F2',
-                'x': 0.5,
-                'y': 1.25,
-                'xanchor': 'center',
-                'yanchor': 'top'},
-            font=dict(
-                family="sans-serif",
-                size=12,
-                color='black')
+                           ),
 
-        )
+                legend={
+                    'orientation': 'h',
+                    'bgcolor': '#F2F2F2',
+                    'x': 0.5,
+                    'y': 1.25,
+                    'xanchor': 'center',
+                    'yanchor': 'top'},
+                font=dict(
+                    family="sans-serif",
+                    size=12,
+                    color='black')
 
-    }
+            )
+
+        }
+    )
+
+    # Histograma
+    max_temperature, min_temperature, amplitude_temperature, k_temperature = get_max_min(df, ["Temperatura"])
+    temperature_histogram = px.histogram(df, x="Temperatura", title='Histograma', opacity=0.8)
+    temperature_histogram.update_traces(xbins=dict(  # bins used for histogram
+        start=min_temperature,
+        end=max_temperature,
+        size=amplitude_temperature
+    ))
+    temperature_histogram.update_layout(
+        xaxis=dict(title='<b>Temperatura (° C)</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+        yaxis=dict(title='<b>Frecuencia</b>',
+                   color='black',
+                   showline=True,
+                   showgrid=True),
+    )
+
+    temperature_histogram.update_layout(layout_factory("Histograma"))
+    return temperature_chart, temperature_histogram
 
 
 @app.callback(Output('text1', 'children'),
