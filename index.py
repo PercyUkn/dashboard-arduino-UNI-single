@@ -54,7 +54,7 @@ background_div_style = {
 }
 
 backgroundImage_style = {
-    "height": "139vh"
+    "height": "167vh"
 }
 
 header_div_style = {
@@ -152,33 +152,45 @@ def table_range_factory(df, categoria, bins):
                    align='center'))
     ])
     fig.update_layout(
-        go.Layout(title=dict(text="<b>Datos categorizados</b>", y=0.92, x=0.5, xanchor='center', yanchor='top')))
+        go.Layout(title=dict(text="<b>Datos categorizados</b>", y=0.92, x=0.5, xanchor='center', yanchor='top'),
+                  plot_bgcolor='rgba(255, 255, 255, 0.0)',
+                  paper_bgcolor='rgba(255, 255, 255, 0.0)',
+                  ))
     return fig
+
 
 def format_stat_names(df, categoria):
     stats = list(df[categoria].describe())
     nombres_estadisticos = ["Total de datos", "Media", "Desviación estándar", "Mínimo", "Percentil 25",
-                           "Percentil 50", "Percentil 75", "Máximo"]
+                            "Percentil 50", "Percentil 75", "Máximo"]
     valores_estadisticos = [int(stats[0])]
     for index, e in enumerate(stats):
         if index > 0:
             valores_estadisticos.append(f"{e:.3f}")
-    return  nombres_estadisticos, valores_estadisticos
+    return nombres_estadisticos, valores_estadisticos
+
 
 def description_table_factory(df, categoria):
     cabecera = ["Estadístico", "Valor"]
-    estadisticos, valores =format_stat_names(df, categoria)
+    estadisticos, valores = format_stat_names(df, categoria)
     fig = go.Figure(data=[go.Table(
-        header=dict(values= cabecera,
+        header=dict(values=cabecera,
                     fill_color='black',
                     font=dict(color='white', size=12),
                     align='center'),
         cells=dict(values=[estadisticos, valores],
                    fill_color='lavender',
-                   align='center'))
+                   align='center',
+                   height=30
+                   ))
     ])
-    fig.update_layout(go.Layout(title=dict(text="<b>Descripción de los datos</b>", y=0.92, x=0.5, xanchor='center', yanchor='top')))
+    fig.update_layout(
+        go.Layout(title=dict(text="<b>Descripción de los datos</b>", y=0.92, x=0.5, xanchor='center', yanchor='top'),
+                  plot_bgcolor='rgba(255, 255, 255, 0.0)',
+                  paper_bgcolor='rgba(255, 255, 255, 0.0)',
+                  ))
     return fig
+
 
 def semaforo_factory(limite_inferior, limite_superior,
                      titulo_izquierdo="Peligro", titulo_central="Alerta", titulo_derecho="Correcto",
@@ -219,7 +231,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar con mucha luz
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_derecho}")',
-                            'height': '139vh',
+                            'height': '167h',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             }),
@@ -229,7 +241,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar oscuro / semáforo
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_izquierdo}")',
-                            'height': '139vh',
+                            'height': '167vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -239,7 +251,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
     else:
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_central}")',
-                            'height': '139vh',
+                            'height': '167vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -376,6 +388,13 @@ app.layout = html.Div([
                                                        config={'displayModeBar': False},
                                                        className='chart_width'),
                                          ], className="six columns"),
+                                         html.Div([
+                                             # Tabla - Descripción de los datos
+                                             dcc.Graph(id='luminosity-description-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
                                      ], className="row flex display")
                                  ],
                                  label='Intensidad de la luz',
@@ -423,6 +442,7 @@ app.layout = html.Div([
                                          ], className="five columns"),
                                      ], className="row flex display"),
 
+                                     # Histograma
                                      html.Div([
                                          html.Div([
                                              # Histograma
@@ -431,8 +451,25 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="twelve columns"),
-                                     ], className="row flex display")
+                                     ], className="row flex display"),
 
+                                     # Tablas
+                                     html.Div([
+                                         html.Div([
+                                             # Tabla - Datos categorizados / Intervalos de clase
+                                             dcc.Graph(id='sound-categorized-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
+                                         html.Div([
+                                             # Tabla - Descripción de los datos
+                                             dcc.Graph(id='sound-description-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
+                                     ], className="row flex display")
                                  ],
                                  label='Intensidad del sonido',
                                  style=tab_style,
@@ -478,6 +515,7 @@ app.layout = html.Div([
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
+                                     # Histograma
                                      html.Div([
                                          html.Div([
                                              # Histograma
@@ -486,7 +524,25 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="twelve columns"),
+                                     ], className="row flex display"),
+                                     # Tablas
+                                     html.Div([
+                                         html.Div([
+                                             # Tabla - Datos categorizados / Intervalos de clase
+                                             dcc.Graph(id='temperature-categorized-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
+                                         html.Div([
+                                             # Tabla - Descripción de los datos
+                                             dcc.Graph(id='temperature-description-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
                                      ], className="row flex display")
+
                                  ],
                                  label='Temperatura',
                                  style=tab_style,
@@ -519,7 +575,7 @@ def update_graph(n_intervals):
 
 
 @app.callback(Output('luminosity-chart', 'figure'), Output('luminosity-histogram', 'figure'),
-              Output('luminosity-categorized-table', 'figure'),
+              Output('luminosity-categorized-table', 'figure'), Output('luminosity-description-table', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -636,15 +692,19 @@ def update_graph(n_intervals):
 
     luminosity_table = table_range_factory(df, categoria, k_luz)
 
-    return luminosity_line_chart, luminosity_histogram, luminosity_table
+    luminosity_description_table = description_table_factory(df, categoria)
+
+    return luminosity_line_chart, luminosity_histogram, luminosity_table, luminosity_description_table
 
 
 @app.callback(Output('sound-chart', 'figure'), Output('sound-histogram', 'figure'),
+              Output('sound-categorized-table','figure') ,Output('sound-description-table', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
     get_time = df['Time'].tail(20)
-    get_sound_level = df['Sonido'].tail(20)
+    categoria = 'Sonido'
+    get_sound_level = df[categoria].tail(20)
     if n_intervals == 0:
         raise PreventUpdate
 
@@ -729,15 +789,15 @@ def update_graph(n_intervals):
     })
 
     # Histograma
-    max_sound, min_sound, amplitude_sound, k_sound = get_max_min(df, ["Sonido"])
-    sound_histogram = px.histogram(df, x="Sonido", title='Histograma', opacity=0.8)
+    max_sound, min_sound, amplitude_sound, k_sound = get_max_min(df, [categoria])
+    sound_histogram = px.histogram(df, x=categoria, title='Histograma', opacity=0.8)
     sound_histogram.update_traces(xbins=dict(  # bins used for histogram
         start=min_sound,
         end=max_sound,
         size=amplitude_sound
     ))
     sound_histogram.update_layout(
-        xaxis=dict(title='<b>Sonido (dB)</b>',
+        xaxis=dict(title=f'<b>{categoria} (dB)</b>',
                    color='black',
                    showline=True,
                    showgrid=True),
@@ -749,15 +809,21 @@ def update_graph(n_intervals):
 
     sound_histogram.update_layout(layout_factory("Histograma"))
 
-    return sound_chart, sound_histogram
+    sound_table = table_range_factory(df, categoria, k_sound)
+
+    sound_description_table = description_table_factory(df, categoria)
+
+    return sound_chart, sound_histogram, sound_table, sound_description_table
 
 
 @app.callback(Output('temperature-chart', 'figure'), Output('temperature-histogram', 'figure'),
+              Output('temperature-categorized-table', 'figure') , Output('temperature-description-table', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
     get_time = df['Time'].tail(20)
-    get_sound_level = df['Temperatura'].tail(20)
+    categoria = 'Temperatura'
+    get_temperature_level = df[('%s' % categoria)].tail(20)
     if n_intervals == 0:
         raise PreventUpdate
 
@@ -765,7 +831,7 @@ def update_graph(n_intervals):
         {
             'data': [go.Scatter(
                 x=get_time,
-                y=get_sound_level,
+                y=get_temperature_level,
                 mode='markers+lines',
                 line=dict(width=3, color='#CA23D5'),
                 marker=dict(size=7, symbol='circle', color='#CA23D5',
@@ -775,7 +841,7 @@ def update_graph(n_intervals):
                 hoverinfo='text',
                 hovertext=
                 '<b>Tiempo</b>: ' + get_time.astype(str) + '<br>' +
-                '<b>Temperatura</b>: ' + [f'{x:,.2f} °C' for x in get_sound_level] + '<br>'
+                '<b>' + categoria + '</b>: ' + [f'{x:,.2f} °C' for x in get_temperature_level] + '<br>'
 
             )],
 
@@ -811,8 +877,8 @@ def update_graph(n_intervals):
 
                            ),
 
-                yaxis=dict(range=[min(get_sound_level) - 0.1, max(get_sound_level) + 0.1],
-                           title='<b>Temperatura</b>',
+                yaxis=dict(range=[min(get_temperature_level) - 0.1, max(get_temperature_level) + 0.1],
+                           title=('<b>%s</b>' % categoria),
                            color='black',
                            showline=True,
                            showgrid=True,
@@ -844,15 +910,15 @@ def update_graph(n_intervals):
     )
 
     # Histograma
-    max_temperature, min_temperature, amplitude_temperature, k_temperature = get_max_min(df, ["Temperatura"])
-    temperature_histogram = px.histogram(df, x="Temperatura", title='Histograma', opacity=0.8)
+    max_temperature, min_temperature, amplitude_temperature, k_temperature = get_max_min(df, [("%s" % categoria)])
+    temperature_histogram = px.histogram(df, x=("%s" % categoria), title='Histograma', opacity=0.8)
     temperature_histogram.update_traces(xbins=dict(  # bins used for histogram
         start=min_temperature,
         end=max_temperature,
         size=amplitude_temperature
     ))
     temperature_histogram.update_layout(
-        xaxis=dict(title='<b>Temperatura (° C)</b>',
+        xaxis=dict(title=('<b>%s (° C)</b>' % categoria),
                    color='black',
                    showline=True,
                    showgrid=True),
@@ -863,7 +929,12 @@ def update_graph(n_intervals):
     )
 
     temperature_histogram.update_layout(layout_factory("Histograma"))
-    return temperature_chart, temperature_histogram
+
+    temperature_table = table_range_factory(df, categoria, k_temperature)
+
+    temperature_description_table = description_table_factory(df, categoria)
+
+    return temperature_chart, temperature_histogram, temperature_table, temperature_description_table
 
 
 @app.callback(Output('text1', 'children'),
