@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 from dash.exceptions import PreventUpdate
 import pandas as pd
 from datetime import datetime
+import numpy as np
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
 
@@ -58,12 +59,12 @@ backgroundImage_style = {
 
 header_div_style = {
     "position": "relative",
-    "top": "100vh"
+    "top": "91vh"
 }
 
 content_div_style = {
     "position": "relative",
-    "top": "105vh"
+    "top": "96vh"
 }
 
 tab_selected_style1 = {
@@ -108,7 +109,7 @@ def get_max_min(dataframe, category):
     min_value = dataframe[category].min()
     max_value = dataframe[category].max()
     amplitude = (max_value - min_value) / k_classes
-    return max_value, min_value, amplitude, k_classes
+    return float(max_value), float(min_value), float(amplitude), k_classes
 
 
 # rgba(255, 255, 255, 0.0)'
@@ -125,6 +126,59 @@ def layout_factory(title, color='#1f2c56'):
     )
     return layout
 
+
+def get_rango(rango_list):
+    lista_rango = []
+    for index, i in enumerate(rango_list):
+        if (index < len(rango_list) - 1):
+            lista_rango.append(f"[{i:.3f}-{rango_list[index + 1]:.3f}>")
+    # lista_rango.append(f"<{rango_list[(len(rango_list))-1]:.3f} - >")
+    # print(lista_rango)
+    return lista_rango
+
+
+def table_range_factory(df, categoria, bins):
+    cabecera = ["Rango", "Frecuencia"]
+    categorizacion, categorias = pd.cut(np.array(df[categoria]), bins=bins, retbins=True)
+    # df[f"categoria_{categoria}"] = categorizacion
+    rango = get_rango(categorias)
+    fig = go.Figure(data=[go.Table(
+        header=dict(values=cabecera,
+                    fill_color='black',
+                    font=dict(color='white', size=12),
+                    align='center'),
+        cells=dict(values=[rango, list(df[categoria].value_counts(bins=bins))],
+                   fill_color='lavender',
+                   align='center'))
+    ])
+    fig.update_layout(
+        go.Layout(title=dict(text="<b>Datos categorizados</b>", y=0.92, x=0.5, xanchor='center', yanchor='top')))
+    return fig
+
+def format_stat_names(df, categoria):
+    stats = list(df[categoria].describe())
+    nombres_estadisticos = ["Total de datos", "Media", "Desviación estándar", "Mínimo", "Percentil 25",
+                           "Percentil 50", "Percentil 75", "Máximo"]
+    valores_estadisticos = [int(stats[0])]
+    for index, e in enumerate(stats):
+        if index > 0:
+            valores_estadisticos.append(f"{e:.3f}")
+    return  nombres_estadisticos, valores_estadisticos
+
+def description_table_factory(df, categoria):
+    cabecera = ["Estadístico", "Valor"]
+    estadisticos, valores =format_stat_names(df, categoria)
+    fig = go.Figure(data=[go.Table(
+        header=dict(values= cabecera,
+                    fill_color='black',
+                    font=dict(color='white', size=12),
+                    align='center'),
+        cells=dict(values=[estadisticos, valores],
+                   fill_color='lavender',
+                   align='center'))
+    ])
+    fig.update_layout(go.Layout(title=dict(text="<b>Descripción de los datos</b>", y=0.92, x=0.5, xanchor='center', yanchor='top')))
+    return fig
 
 def semaforo_factory(limite_inferior, limite_superior,
                      titulo_izquierdo="Peligro", titulo_central="Alerta", titulo_derecho="Correcto",
@@ -302,7 +356,7 @@ app.layout = html.Div([
                                              ], className="row flex display"),
                                          ], className="five columns"),
                                      ], className="row flex display"),
-
+                                     # Histograma
                                      html.Div([
                                          html.Div([
                                              # Histograma
@@ -311,6 +365,17 @@ app.layout = html.Div([
                                                        config={'displayModeBar': 'hover'},
                                                        className='chart_width'),
                                          ], className="twelve columns"),
+                                     ], className="row flex display"),
+
+                                     # Tablas
+                                     html.Div([
+                                         html.Div([
+                                             # Tabla - Datos categorizados / Intervalos de clase
+                                             dcc.Graph(id='luminosity-categorized-table',
+                                                       animate=True,
+                                                       config={'displayModeBar': False},
+                                                       className='chart_width'),
+                                         ], className="six columns"),
                                      ], className="row flex display")
                                  ],
                                  label='Intensidad de la luz',
@@ -454,11 +519,13 @@ def update_graph(n_intervals):
 
 
 @app.callback(Output('luminosity-chart', 'figure'), Output('luminosity-histogram', 'figure'),
+              Output('luminosity-categorized-table', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
     get_time = df['Time'].tail(20)
-    get_light_level = df['Luminosidad'].tail(20)
+    categoria = 'Luminosidad'
+    get_light_level = df[categoria].tail(20)
     if n_intervals == 0:
         raise PreventUpdate
 
@@ -547,15 +614,15 @@ def update_graph(n_intervals):
     )
 
     # Histograma
-    max_light, min_light, amplitude_light, k_luz = get_max_min(df, ["Luminosidad"])
-    luminosity_histogram = px.histogram(df, x="Luminosidad", title='Histograma', opacity=0.8)
+    max_light, min_light, amplitude_light, k_luz = get_max_min(df, [categoria])
+    luminosity_histogram = px.histogram(df, x=categoria, title='Histograma', opacity=0.8)
     luminosity_histogram.update_traces(xbins=dict(  # bins used for histogram
         start=min_light,
         end=max_light,
         size=amplitude_light
     ))
     luminosity_histogram.update_layout(
-        xaxis=dict(title='<b>Luminosidad (LUX)</b>',
+        xaxis=dict(title=f'<b>{categoria} (LUX)</b>',
                    color='black',
                    showline=True,
                    showgrid=True),
@@ -567,7 +634,9 @@ def update_graph(n_intervals):
 
     luminosity_histogram.update_layout(layout_factory("Histograma"))
 
-    return luminosity_line_chart, luminosity_histogram
+    luminosity_table = table_range_factory(df, categoria, k_luz)
+
+    return luminosity_line_chart, luminosity_histogram, luminosity_table
 
 
 @app.callback(Output('sound-chart', 'figure'), Output('sound-histogram', 'figure'),
@@ -683,7 +752,7 @@ def update_graph(n_intervals):
     return sound_chart, sound_histogram
 
 
-@app.callback(Output('temperature-chart', 'figure'),Output('temperature-histogram', 'figure'),
+@app.callback(Output('temperature-chart', 'figure'), Output('temperature-histogram', 'figure'),
               [Input('update_chart', 'n_intervals')])
 def update_graph(n_intervals):
     df = pd.read_csv('%s' % csv, names=header_list)
@@ -691,7 +760,6 @@ def update_graph(n_intervals):
     get_sound_level = df['Temperatura'].tail(20)
     if n_intervals == 0:
         raise PreventUpdate
-
 
     temperature_chart = go.Figure(
         {
