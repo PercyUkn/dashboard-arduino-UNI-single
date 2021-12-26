@@ -147,7 +147,7 @@ def table_range_factory(df, categoria, bins):
                     fill_color='black',
                     font=dict(color='white', size=12),
                     align='center'),
-        cells=dict(values=[rango, list(df[categoria].value_counts(bins=bins))],
+        cells=dict(values=[rango, list(df[categoria].value_counts(bins=bins), sort=False)],
                    fill_color='lavender',
                    align='center'))
     ])
