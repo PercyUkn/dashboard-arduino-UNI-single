@@ -3,14 +3,15 @@ from turtle import position
 
 import plotly.express as px
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 from dash.exceptions import PreventUpdate
 import pandas as pd
 from datetime import datetime
 import numpy as np
+from mail import send_mail
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
 
@@ -59,12 +60,12 @@ backgroundImage_style = {
 
 header_div_style = {
     "position": "relative",
-    "top": "91vh"
+    "top": "101vh"
 }
 
 content_div_style = {
     "position": "relative",
-    "top": "96vh"
+    "top": "111vh"
 }
 
 tab_selected_style1 = {
@@ -97,9 +98,12 @@ limite_inferior_sonido = 30
 limite_superior_sonido = 60
 
 limite_inferior_temperatura = 20
-limite_superior_temperatura = 32
+limite_superior_temperatura = 27
 
-
+# Activar/Desactivar envio de correos
+sending_available = True
+date_sent = datetime(2017, 12, 26, 20, 38, 37)
+minutos_periodo_alerta = .16666666 # Cada 10 segundos se puede volver a enviar
 # Funciones utilitarias
 
 def get_max_min(dataframe, category):
@@ -110,6 +114,21 @@ def get_max_min(dataframe, category):
     max_value = dataframe[category].max()
     amplitude = (max_value - min_value) / k_classes
     return float(max_value), float(min_value), float(amplitude), k_classes
+
+def notificar_peligro(data):
+    global date_sent
+    date_sending = datetime.strptime(data["fecha"],'%Y-%m-%d %H:%M:%S')
+    date_diff = date_sending - date_sent
+    minutes = date_diff.seconds / 60
+    print(minutes)
+    if minutes > minutos_periodo_alerta:
+        send_mail(data["category"], data["level"],data["fecha"],data["color"], data["previous_value"])
+        print("Nofiticaciones enviadas por correo")
+        date_sent = date_sending
+
+    # sending_available = False
+    return
+
 
 
 # rgba(255, 255, 255, 0.0)'
@@ -147,7 +166,7 @@ def table_range_factory(df, categoria, bins):
                     fill_color='black',
                     font=dict(color='white', size=12),
                     align='center'),
-        cells=dict(values=[rango, list(df[categoria].value_counts(bins=bins), sort=False)],
+        cells=dict(values=[rango, list(df[categoria].value_counts(bins=bins, sort=False))],
                    fill_color='lavender',
                    align='center'))
     ])
@@ -231,7 +250,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar con mucha luz
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_derecho}")',
-                            'height': '167h',
+                            'height': '193h',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             }),
@@ -241,7 +260,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
         # Cambiarlo por lugar oscuro / semáforo
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_izquierdo}")',
-                            'height': '167vh',
+                            'height': '193vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -251,7 +270,7 @@ def background_factory(value, limite_inferior, limite_superior, fondo_izquierdo,
     else:
         return [
             html.Div(style={'backgroundImage': f'url("/assets/{fondo_central}")',
-                            'height': '167vh',
+                            'height': '193vh',
                             'backgroundRepeat': 'no-repeat',
                             'backgroundSize': 'cover'
                             },
@@ -274,6 +293,9 @@ app.layout = html.Div([
     html.Div([
         dcc.Interval(id='update_date_time',
                      interval=1000,
+                     n_intervals=0),
+        dcc.Interval(id='update_toggle_email',
+                     interval=10000,
                      n_intervals=0),
     ]),
 
@@ -952,6 +974,16 @@ def update_graph(n_intervals):
                              color_central="#FCDE22", color_derecho="red")
     color_variacion = kpi_color(changed_light_level, 0, 0, color_central="black")
 
+    if get_light_level > limite_superior_luz:
+        data = {"category":"Luminosidad",
+                "level":'{0:,.2f} LUX'.format(get_light_level),
+                "fecha": get_time,
+                "color": color_variacion,
+                "previous_value": '{0:,.2f} LUX'.format(changed_light_level) + ' ' + 'vs. medición anterior',
+                }
+        notificar_peligro(data=data)
+
+
     return [
         html.H6('Luminosidad',
                 style={'textAlign': 'center',
@@ -1005,6 +1037,15 @@ def update_graph(n_intervals):
                              color_central="#FCDE22", color_derecho="red")
     color_variacion = kpi_color(changed_sound_level, 0, 0, color_central="black")
 
+    if get_sound_level > limite_superior_sonido:
+        data = {"category":"Nivel sonoro",
+                "level":'{0:,.2f} dB'.format(get_sound_level),
+                "fecha": get_time,
+                "color": color_variacion,
+                "previous_value": '{0:,.2f} dB'.format(changed_sound_level) + ' ' + 'vs. medición anterior',
+                }
+        notificar_peligro(data=data)
+
     return [
         html.H6('Nivel sonoro',
                 style={'textAlign': 'center',
@@ -1057,6 +1098,16 @@ def update_graph(n_intervals):
     color_actual = kpi_color(get_temperature_level, limite_inferior_temperatura, limite_superior_temperatura,
                              color_izquierdo="red", color_central="#109D55", color_derecho="red")
     color_variacion = kpi_color(changed_temperature_level, 0, 0, color_central="black")
+
+    if get_temperature_level > limite_superior_temperatura:
+        data = {"category":"Temperatura",
+                "level":'{0:,.2f} °C'.format(get_temperature_level),
+                "fecha": get_time,
+                "color": color_variacion,
+                "previous_value": '{0:,.2f} °C'.format(changed_temperature_level) + ' ' + 'vs. medición anterior',
+                }
+        notificar_peligro(data=data)
+
 
     return [
         html.H6('Temperatura',
